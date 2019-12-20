@@ -22,6 +22,7 @@ function main() {
     if (schedule === null) {
         return;
     }
+    schedule = organiseTimes(events, times, durations, schedule);
 }
 
 function createAllTimes() {
@@ -146,6 +147,71 @@ function placeFixedSchedule(evs, tms, drs, sch) {
     return sch;
 }
 
+function organiseTimes(evs, tms, drs, sch) {
+    let output = document.getElementById("output");
+    output.innerHTML = "";
+
+    for (let e = 0; e < evs.length; e++) {
+        if (tms[e] === "") {
+            sch.forEach((event, time) => {
+                let possTime = time;
+                let timeUsed = true;
+
+                if (event === "Empty") {
+                    timeUsed = false;
+                    for (let d = 0; d < parseInt(drs[e]); d++) {
+                        if (d === 0) {
+                            let testTime = possTime.split(":");
+                        }
+                        if ((parseInt(testTime[1]) < 10) && (testTime[1].length < 2)) {
+                            testTime[1] = `0${testTime[1]}`;
+                        }
+                        if (parseInt(testTime[1]) === 60) {
+                            testTime[1] = "00";
+                            testTime[0] = (parseInt(testTime[0])+1).toString();
+                        }
+                        if (parseInt(testTime[0]) > 23) {
+                            break;
+                        }
+                        else {
+                            let schTime = testTime.join(":");
+                            testTime[1] = (parseInt(testTime[1])+1).toString();
+                            if (sch[schTime] !== "Empty") {
+                                timeUsed = true;
+                            }
+                        }
+                    }
+                    if (timeUsed === false) {
+                        for (let d = 0; d < parseInt(drs[e]); d++) {
+                            if (d === 0) {
+                                let testTime = possTime.split(":");
+                            }
+                            if ((parseInt(testTime[1]) < 10) && (testTime[1].length < 2)) {
+                                testTime[1] = `0${testTime[1]}`;
+                            }
+                            if (parseInt(testTime[1]) === 60) {
+                                testTime[1] = "00";
+                                testTime[0] = (parseInt(testTime[0])+1).toString();
+                            }
+                            if (parseInt(testTime[0]) > 23) {
+                                output.innerHTML += `${evs[e]} + " is going ${parseInt(drs[e])-d} minutes into the next day.`;
+                                break;
+                            }
+                            else {
+                                schTime = testTime.join(":");
+                                sch[schTime] = evs[e]
+                                testTime[1] = (parseInt(testTime[1])+1).toString();
+                            }
+                        }
+                        break;
+                    }
+                }
+            });
+            }
+        }
+    }
+}
+
 function dict(indicies, values) {
     let combine = {};
     for (let i = 0; i < indicies.length; i++) {
@@ -157,3 +223,47 @@ function dict(indicies, values) {
 
 
 window.addEventListener("load", pageLoad);
+
+
+/*
+import math
+import time
+
+def main():
+    organiseTimes(events, times, durations, schedule)
+  print("Thank you for using the 'Auto Day Planner'. Here is your final schedule:")
+  displaySchedule(schedule)
+
+def displaySchedule(sch):
+  print ("Your schedule for the day is: ")
+  curEvt = ""
+  for evt in sch:
+    if curEvt is not sch[evt]:
+      curEvt = sch[evt]
+      print (evt+"+: "+sch[evt])
+
+
+
+
+            	    
+
+
+
+def isValidDur(string):
+  try:
+    if (int(string) <= 1440):
+      return True
+    else:
+      return False
+  except ValueError:
+    return False
+
+def isValidTime(string):
+    try:
+        time.strptime(string, '%H:%M')
+        return True
+    except ValueError:
+        return False
+
+main()
+*/
