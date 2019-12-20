@@ -23,6 +23,9 @@ function main() {
         return;
     }
     schedule = organiseTimes(events, times, durations, schedule);
+    console.log(schedule);
+
+    displaySchedule(schedule);
 }
 
 function createAllTimes() {
@@ -128,12 +131,12 @@ function placeFixedSchedule(evs, tms, drs, sch) {
                     time[0] = (parseInt(time[0])+1).toString();
                 }
                 if (parseInt(time[0]) > 23) {
-                    output.innerHTML += `${evs[e]} is going ${parseInt(drs[e]-d)} minutes into the next day.`;
+                    output.innerHTML += `${evs[e]} is going ${parseInt(drs[e]-d)} minutes into the next day.<br/>`;
                 }
                 else {
                     let schTime = time.join(":");
                     if (sch[schTime] !== "Empty") {
-                        output.innerHTML += `Scheduling conflict at ${schTime}, between '${sch[schTime]}' and '${evs[e]}'!`;
+                        output.innerHTML += `Scheduling conflict at ${schTime}, between '${sch[schTime]}' and '${evs[e]}'!<br/>`;
                         output.innerHTML += "Stopping program."
                         return null;
                     }
@@ -194,22 +197,36 @@ function organiseTimes(evs, tms, drs, sch) {
                                 testTime[0] = (parseInt(testTime[0])+1).toString();
                             }
                             if (parseInt(testTime[0]) > 23) {
-                                output.innerHTML += `${evs[e]} + " is going ${parseInt(drs[e])-d} minutes into the next day.`;
+                                output.innerHTML += `${evs[e]} + " is going ${parseInt(drs[e])-d} minutes into the next day.<br/>`;
                                 break;
                             }
                             else {
                                 schTime = testTime.join(":");
-                                sch[schTime] = evs[e]
+                                sch[schTime] = evs[e];
                                 testTime[1] = (parseInt(testTime[1])+1).toString();
                             }
+                            break;
                         }
-                        break;
                     }
                 }
             });
-            }
         }
     }
+
+    return sch;
+}
+
+function displaySchedule(sch) {
+    let output = document.getElementById("output");
+    output.innerHTML += "Your schedule for the day is: <br/>";
+
+    let curEvt = "";
+    Object.entries(sch).forEach((event_time) => {
+        if (curEvt !== event_time[1]) {
+            curEvt = event_time[1];
+            output.innerHTML += `${event_time[0]}: ${event_time[1]}<br/>`
+        }
+    });
 }
 
 function dict(indicies, values) {
@@ -226,28 +243,6 @@ window.addEventListener("load", pageLoad);
 
 
 /*
-import math
-import time
-
-def main():
-    organiseTimes(events, times, durations, schedule)
-  print("Thank you for using the 'Auto Day Planner'. Here is your final schedule:")
-  displaySchedule(schedule)
-
-def displaySchedule(sch):
-  print ("Your schedule for the day is: ")
-  curEvt = ""
-  for evt in sch:
-    if curEvt is not sch[evt]:
-      curEvt = sch[evt]
-      print (evt+"+: "+sch[evt])
-
-
-
-
-            	    
-
-
 
 def isValidDur(string):
   try:
