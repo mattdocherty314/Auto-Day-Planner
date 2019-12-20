@@ -4,6 +4,9 @@ function pageLoad() {
 }
 
 function main() {
+    let output = document.getElementById("output");
+    output.innerHTML = "";
+
     let allTimes = createAllTimes();
     let emptyDay = createEmptyDay();
     let schedule = dict(allTimes, emptyDay);
@@ -11,6 +14,13 @@ function main() {
     let events = getEvents();
     let times = getTimes();
     let durations = getDurations();
+    if (times === -1 || durations === -1) {
+        return;
+    }
+    if (events.length !== times.length || events.length !== durations.length) {
+        output.innerHTML += "You have mismatching amounts of items";
+        return;
+    }
 
     let sortedIndices = getOrder(durations);
     let sortedArrays = sortArrays(events, times, durations, sortedIndices);
@@ -23,7 +33,6 @@ function main() {
         return;
     }
     schedule = organiseTimes(events, times, durations, schedule);
-    console.log(schedule);
 
     displaySchedule(schedule);
 }
@@ -61,12 +70,24 @@ function getEvents() {
 
 function getTimes() {
     let timesElement = document.getElementById("times-list");
-    return timesElement.value.split(", ");
+    let times = timesElement.value.split(", ");
+    for (let t = 0; t < times.length; t++) {
+        if (!isValidTime(times[t])) {
+            return -1;
+        }
+    }
+    return times;
 }
 
 function getDurations() {
     let durationsElement = document.getElementById("durations-list");
-    return durationsElement.value.split(", ");
+    let durations = durationsElement.value.split(", ");
+    for (let d = 0; d < durations.length; d++) {
+        if (!isValidDur(durations[d])) {
+            return -1;
+        }
+    }
+    return durations;
 }
 
 function getOrder(drs) {
@@ -115,7 +136,6 @@ function sortArrays(evs, tms, drs, srt) {
 
 function placeFixedSchedule(evs, tms, drs, sch) {
     let output = document.getElementById("output");
-    output.innerHTML = "";
 
     for (let e = 0; e < evs.length; e++) {
         if (tms[e] !== "") {
@@ -132,6 +152,7 @@ function placeFixedSchedule(evs, tms, drs, sch) {
                 }
                 if (parseInt(time[0]) > 23) {
                     output.innerHTML += `${evs[e]} is going ${parseInt(drs[e]-d)} minutes into the next day.<br/>`;
+                    return;
                 }
                 else {
                     let schTime = time.join(":");
@@ -152,19 +173,22 @@ function placeFixedSchedule(evs, tms, drs, sch) {
 
 function organiseTimes(evs, tms, drs, sch) {
     let output = document.getElementById("output");
-    output.innerHTML = "";
 
     for (let e = 0; e < evs.length; e++) {
         if (tms[e] === "") {
-            sch.forEach((event, time) => {
+            for (let event_time of Object.entries(sch))  {
+                let time = event_time[0];
+                let event = event_time[1];
+
                 let possTime = time;
                 let timeUsed = true;
-
+                
                 if (event === "Empty") {
                     timeUsed = false;
+                    let testTime = [];
                     for (let d = 0; d < parseInt(drs[e]); d++) {
                         if (d === 0) {
-                            let testTime = possTime.split(":");
+                            testTime = possTime.split(":");
                         }
                         if ((parseInt(testTime[1]) < 10) && (testTime[1].length < 2)) {
                             testTime[1] = `0${testTime[1]}`;
@@ -184,10 +208,12 @@ function organiseTimes(evs, tms, drs, sch) {
                             }
                         }
                     }
+                    
                     if (timeUsed === false) {
+                        let testTime = [];
                         for (let d = 0; d < parseInt(drs[e]); d++) {
                             if (d === 0) {
-                                let testTime = possTime.split(":");
+                                testTime = possTime.split(":");
                             }
                             if ((parseInt(testTime[1]) < 10) && (testTime[1].length < 2)) {
                                 testTime[1] = `0${testTime[1]}`;
@@ -197,19 +223,19 @@ function organiseTimes(evs, tms, drs, sch) {
                                 testTime[0] = (parseInt(testTime[0])+1).toString();
                             }
                             if (parseInt(testTime[0]) > 23) {
-                                output.innerHTML += `${evs[e]} + " is going ${parseInt(drs[e])-d} minutes into the next day.<br/>`;
+                                output.innerHTML += `${evs[e]} is going ${parseInt(drs[e])-d} minutes into the next day.<br/>`;
                                 break;
                             }
                             else {
                                 schTime = testTime.join(":");
                                 sch[schTime] = evs[e];
                                 testTime[1] = (parseInt(testTime[1])+1).toString();
-                            }
-                            break;
+                            } 
                         }
+                        break;
                     }
                 }
-            });
+            };
         }
     }
 
@@ -229,6 +255,50 @@ function displaySchedule(sch) {
     });
 }
 
+function isValidDur(string) {
+    let output = document.getElementById("output");
+
+    let numStr = parseInt(string);
+
+    if (isNaN(numStr)) {
+        output.innerHTML += "One of the durations is not a number."
+        return false;
+    }
+    else if (numStr > 1440) {
+        output.innerHTML += `You cannot have a duration greater than 1440 minutes`;
+        return false;
+    }
+
+    return true;
+}
+
+function isValidTime(string) {
+    let output = document.getElementById("output");
+
+    let time = string.split(":");
+    let hr = parseInt(time[0]);
+    let min = parseInt(time[1]);
+
+    if (isNaN(hr) && time[0] !== "") {
+        output.innerHTML += "One of the times is not a valid time.";
+        return false;
+    } else if (isNaN(min) && time[0] !== "") {
+        output.innerHTML += "One of the times is not a valid time.";
+        return false;
+    } else if (time.length !== 2 && time[0] !== "") {
+        output.innerHTML += "One of the times is not a valid time.";
+        return false;
+    } else if ((hr > 24) || (hr < 0)) {
+        output.innerHTML += "One of the times is not a valid time.";
+        return false;
+    } else if ((min > 60) || (min < 0)) {
+        output.innerHTML += "One of the times is not a valid time.";
+        return false;
+    }
+
+    return true;
+}
+
 function dict(indicies, values) {
     let combine = {};
     for (let i = 0; i < indicies.length; i++) {
@@ -240,25 +310,3 @@ function dict(indicies, values) {
 
 
 window.addEventListener("load", pageLoad);
-
-
-/*
-
-def isValidDur(string):
-  try:
-    if (int(string) <= 1440):
-      return True
-    else:
-      return False
-  except ValueError:
-    return False
-
-def isValidTime(string):
-    try:
-        time.strptime(string, '%H:%M')
-        return True
-    except ValueError:
-        return False
-
-main()
-*/
